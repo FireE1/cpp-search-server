@@ -58,6 +58,12 @@ struct Query {
     set<string> minus_word;
 };
 
+struct MinusNotStop {
+    string word;
+    bool minus;
+    bool stop;
+};
+
 class SearchServer {
     public:
         void SetStopWords(const string& text) {             //собираем стоп слова в кучу
@@ -71,7 +77,7 @@ class SearchServer {
             const vector<string> words = SplitIntoWordsNoStop(document);                                    //(количество конкретных слов ко всем словам)
             for (const string& word : words)
             {
-                word_to_documents_[word][document_id] = (word_to_documents_[word][document_id] + 1) / words.size();
+                word_to_documents_[word][document_id] += 1.0 / words.size();
             }
             ++document_count_;
         }
@@ -94,18 +100,35 @@ class SearchServer {
     set<string> stop_words_;
     int document_count_ = 0;
 
+        bool IsStopWord(const string& word) const {             //является ли слово - стоп словом
+            return stop_words_.count(word) > 0;
+        }
+
+        MinusNotStop ParseQueryForMinus(string word) const {                //проверка слова на минус и проверка на стоп
+            bool minus = false;
+            if (word[0] == '-') 
+            {
+                minus = true;
+                word = word.substr(1);
+            }
+            return {word, minus, IsStopWord(word)};
+        }
+
         Query ParseQuery(const string& text) const {                //разбираем запрос на слова(плюс и минус)
             Query query_words;
-            for (const string& word : SplitIntoWordsNoStop(text)) 
+            for (const string& word : SplitIntoWords(text)) 
             {
-                if (word[0] == '-')
+                const MinusNotStop poss_minus = ParseQueryForMinus(word);
+                if (!poss_minus.stop)
                 {
-                    string min_w = word.substr(1);
-                    query_words.minus_word.insert(min_w);
-                }
-                else
-                {
-                    query_words.plus_word.insert(word);
+                    if (poss_minus.minus)
+                    {
+                    query_words.minus_word.insert(poss_minus.word);
+                    }
+                    else
+                    {
+                    query_words.plus_word.insert(poss_minus.word);
+                    }
                 }
             }
             return query_words;
@@ -123,6 +146,10 @@ class SearchServer {
             return words;
         }
 
+        double GetIDF(const string& iter_word) const {
+            return log(document_count_ * 1.0 / word_to_documents_.at(iter_word).size());
+        }
+
         vector<Document> FindAllDocuments(const Query& query_words) const {             //выделяем id и релевантность нужных нам документов
             vector<Document> matched_documents;
             map<int, double> doc_to_relv;
@@ -136,7 +163,7 @@ class SearchServer {
                 {
                     continue;
                 }
-                double idf = log((double)document_count_ / (double)word_to_documents_.at(pluses).size());
+                double idf = GetIDF(pluses);
                 for (const auto& id_tf : word_to_documents_.at(pluses))
                 {
                     doc_to_relv[id_tf.first] += idf * id_tf.second;
