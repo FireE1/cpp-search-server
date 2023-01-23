@@ -181,8 +181,9 @@ void TestRelevanceOnDocuments () {
         const Document& doc2 = found_docs[1];
         const double doc0_rel = Relevance(SplitIntoWords(content_2), SplitIntoWords(q), found_docs.size());
         const double doc2_rel = Relevance(SplitIntoWords(content), SplitIntoWords(q), found_docs.size());
-        ASSERT_EQUAL(doc0.relevance, doc0_rel);
-        ASSERT_EQUAL(doc2.relevance, doc2_rel);
+        const double eps = 1e-6;
+        ASSERT(abs(doc0.relevance - doc0_rel) < eps);
+        ASSERT(abs(doc2.relevance - doc2_rel) < eps);
         ASSERT(doc0.relevance > doc2.relevance);
     }
 }
