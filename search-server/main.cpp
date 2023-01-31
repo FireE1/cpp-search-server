@@ -95,13 +95,6 @@ public:
         : SearchServer(
             SplitIntoWords(stop_words_text))
     {
-        for (const auto word : SplitIntoWords(stop_words_text))
-            {
-                if(!IsValidWord(word))
-                {
-                    throw invalid_argument("wrong words input"s); 
-                }
-            }
     }
 
     void AddDocument(int document_id, const string& document, DocumentStatus status,
@@ -117,12 +110,9 @@ public:
         {
             throw invalid_argument("wrong id input"s);
         }
-        for (const auto [key, value] : documents_)
+        if (documents_.count(document_id))
         {
-            if (document_id == key)
-            {
-                throw invalid_argument("wrong id input(id already taken)"s);
-            }
+            throw invalid_argument("wrong id input(id already taken)"s);
         }
         const vector<string> words = SplitIntoWordsNoStop(document);
         const double inv_word_count = 1.0 / words.size();
@@ -130,6 +120,7 @@ public:
             word_to_document_freqs_[word][document_id] += inv_word_count;
         }
         documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
+        docs_ids_.push_back(document_id);
     }
 
     template <typename DocumentPredicate>
@@ -214,25 +205,15 @@ public:
     }
 
     int GetDocumentId(int index) const {
-        int id = 0;
-        int num = 0;
         if (index > documents_.size() || index < 0)
         {
             throw out_of_range("document not exist"s);
         }
-        for (const auto [key, val] : documents_)
-        {
-            if (num == index)
-            {
-                id = key;
-                break;
-            }
-            ++num;
-        }
+        int id = docs_ids_[index];
         return id;
     }
     
-    static bool IsValidWord(const string& word) {
+    static bool IsValidWord(const string& word) {       //Не могу понять, как связать с SplitIntoWords
         return none_of(word.begin(), word.end(), [](char c) {
             return c >= '\0' && c < ' ';
         });
@@ -247,6 +228,7 @@ private:
     const set<string> stop_words_;
     map<string, map<int, double>> word_to_document_freqs_;
     map<int, DocumentData> documents_;
+    vector<int> docs_ids_;
     
     bool IsStopWord(const string& word) const {
         return stop_words_.count(word) > 0;
@@ -285,7 +267,7 @@ private:
         bool is_error = false;
  
         if (!IsValidWord(text)) {
-            is_error = true;
+            throw invalid_argument("wrong words input"s);
         }
  
         if (text[0] == '-') {
