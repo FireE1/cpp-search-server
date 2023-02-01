@@ -126,11 +126,6 @@ public:
     template <typename DocumentPredicate>
     vector<Document> FindTopDocuments(const string& raw_query,
                                       DocumentPredicate document_predicate) const {
-        const Query q = ParseQuery(raw_query);
-        if (q.query_error)
-        {
-            throw invalid_argument("wrong words input"s);
-        }
         for (const auto word : SplitIntoWords(raw_query))
         {
             if (!IsValidWord(word))
@@ -172,10 +167,6 @@ public:
 
     tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query, int document_id) const {
         const Query query = ParseQuery(raw_query);
-        if (query.query_error)
-        {
-            throw invalid_argument("wrong words input"s);
-        }
         for (const auto word : SplitIntoWords(raw_query))
         {
             if (!IsValidWord(word))
@@ -259,13 +250,10 @@ private:
         string data;
         bool is_minus;
         bool is_stop;
-        bool is_error;
     };
  
     QueryWord ParseQueryWord(string text) const {
         bool is_minus = false;
-        bool is_error = false;
- 
         if (!IsValidWord(text)) {
             throw invalid_argument("wrong words input"s);
         }
@@ -274,41 +262,38 @@ private:
             is_minus = true;
             text = text.substr(1);
             if (text.empty()) {
-                is_error = true;
+                throw invalid_argument("wrong input"s);
             }
         
             if (text[0] == '-') {
-                is_error = true;
+                throw invalid_argument("wrong input"s);
             }
         }
-        return { text, is_minus, IsStopWord(text), is_error };
+        return { text, is_minus, IsStopWord(text)};
     }
  
     struct Query {
         set<string> plus_words;
         set<string> minus_words;
-        bool query_error;
     };
  
     Query ParseQuery(const string& text) const {
         Query query;
-        query.query_error = false;
         for (const string& word : SplitIntoWords(text)) {
             const QueryWord query_word = ParseQueryWord(word);
  
-            if (!query_word.is_error) {
-                if (!query_word.is_stop) {
-                    if (query_word.is_minus) {
-                        query.minus_words.insert(query_word.data);
-                    }
-                    else {
-                        query.plus_words.insert(query_word.data);
-                    }
+            if (!query_word.is_stop) 
+            {
+                if (query_word.is_minus) 
+                {
+                    query.minus_words.insert(query_word.data);
+                } else 
+                {
+                    query.plus_words.insert(query_word.data);
                 }
-            }
-            else {
-                query.query_error = true;
-                return query;
+            } else 
+            {
+                throw invalid_argument("wrong words input"s);
             }                                                  
         }
         return query;
