@@ -4,6 +4,8 @@
 #include "request_queue.cpp"
 #include "read_input_functions.h"
 #include "string_processing.cpp"
+#include "remove_duplicates.h"
+#include "test_example_functions.h"
 
 int main() {
     SearchServer search_server("and with"s);

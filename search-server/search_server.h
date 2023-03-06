@@ -37,7 +37,6 @@ public:
     std::set<int>::const_iterator end();
 
     void RemoveDocument(int document_id);
-    void RemoveDuplicates(SearchServer& search_server);
 
     const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
 
@@ -54,7 +53,6 @@ private:
     std::map<int, DocumentData> documents_;
     std::set<int> document_ids_;
     std::map<int, std::map<std::string, double>> id_to_document_freqs_;
-    std::map<int, std::set<std::string>> words_in_doc;
 
     bool IsStopWord(const std::string& word) const;
 
@@ -95,16 +93,6 @@ private:
     std::vector<Document> FindAllDocuments(const Query& query,
                                       DocumentPredicate document_predicate) const;
 };
-
-// Для работы примера
-void AddDocument(SearchServer& server, int document_id, const std::string& document, 
-                DocumentStatus status, const std::vector<int>& ratings) {
-    server.AddDocument(document_id, document, status, ratings);
-}
-// Для работы примера
-void RemoveDuplicates(SearchServer& server) {
-    server.RemoveDuplicates(server);
-}
 
 template <typename StringContainer>
 SearchServer::SearchServer(const StringContainer& stop_words)

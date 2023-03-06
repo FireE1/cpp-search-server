@@ -11,7 +11,6 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
     for (const std::string& word : words) {
         word_to_document_freqs_[word][document_id] += inv_word_count;
         id_to_document_freqs_[document_id][word] += inv_word_count;
-        words_in_doc[document_id].insert(word);
     }
     documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
     document_ids_.insert(document_id);
@@ -55,27 +54,6 @@ void SearchServer::RemoveDocument(int document_id) {
         documents_.erase(document_id);
         id_to_document_freqs_.erase(document_id);
         document_ids_.erase(document_id);
-    }
-}
-
-void SearchServer::RemoveDuplicates(SearchServer& search_server) {
-    std::set<int> to_remove;
-    for (auto i = begin(); i != end(); ++i)
-    {
-        auto doc = words_in_doc[*i];
-        for (auto k = i; k != end(); ++k)
-        {
-            auto doc1 = words_in_doc[*k];
-            if (i != k && doc.size() == doc1.size() && doc == doc1)
-            {
-                to_remove.insert(*k);
-            }
-        }
-    }
-    for (int i : to_remove)
-    {
-        std::cout << "Found duplicate document id " << i << std::endl;
-        RemoveDocument(i);
     }
 }
 
