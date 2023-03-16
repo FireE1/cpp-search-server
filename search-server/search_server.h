@@ -12,8 +12,8 @@
 #include <numeric>
 #include <iostream>
 
-const int MAX_RESULT_DOCUMENT_COUNT = 5;
-const double EPSILON = 1e-6;
+constexpr int MAX_RESULT_DOCUMENT_COUNT = 5;
+constexpr double EPSILON = 1e-6;
 
 class SearchServer {
 public:

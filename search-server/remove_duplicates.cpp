@@ -20,9 +20,9 @@ void RemoveDuplicates(SearchServer& search_server) {
             words.insert(doc_words);
         }
     }
-    for (int i : to_remove)
+    for (int id : to_remove)
     {
-        std::cout << "Found duplicate document id " << i << std::endl;
-        search_server.RemoveDocument(i);
+        std::cout << "Found duplicate document id " << id << std::endl;
+        search_server.RemoveDocument(id);
     }
 }
