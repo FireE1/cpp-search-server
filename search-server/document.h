@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 enum class DocumentStatus {
     ACTUAL,
     IRRELEVANT,

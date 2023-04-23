@@ -2,6 +2,7 @@
 
 #include "document.h"
 
+#include <vector>
 #include <iostream>
 #include <string>
 
