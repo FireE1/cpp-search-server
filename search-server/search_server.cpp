@@ -29,36 +29,9 @@ std::vector<Document> SearchServer::FindTopDocuments(std::string_view raw_query)
     return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::execution::sequenced_policy&, std::string_view raw_query, DocumentStatus status) const {
-        return FindTopDocuments(
-            raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
-                return document_status == status;
-            });
-    }
-
-std::vector<Document> SearchServer::FindTopDocuments(const std::execution::sequenced_policy&, std::string_view raw_query) const {
-    return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
-}
-
-std::vector<Document> SearchServer::FindTopDocuments(const std::execution::parallel_policy&, std::string_view raw_query, DocumentStatus status) const {
-        return FindTopDocuments(std::execution::par, 
-            raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
-                return document_status == status;
-            });
-    }
-
-std::vector<Document> SearchServer::FindTopDocuments(const std::execution::parallel_policy&, std::string_view raw_query) const {
-    return FindTopDocuments(std::execution::par, raw_query, DocumentStatus::ACTUAL);
-}
-
 int SearchServer::GetDocumentCount() const {
     return documents_.size();
 }
-/* Устарело
-int SearchServer::GetDocumentId(int index) const {
-    return document_ids_.at(index);
-}
-*/
 
 std::set<int>::const_iterator SearchServer::begin() {
         return document_ids_.begin();
@@ -196,7 +169,7 @@ SearchServer::QueryWord SearchServer::ParseQueryWord(std::string_view text) cons
     return {text, is_minus, IsStopWord(text)};
 }
 
-SearchServer::Query SearchServer::ParseQuery(std::string_view& text, bool seq) const {
+SearchServer::Query SearchServer::ParseQuery(std::string_view text, bool seq) const {
     Query result;
     for (std::string_view word : SplitIntoWords(text))
     {
