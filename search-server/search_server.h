@@ -1,7 +1,6 @@
 #pragma once
 
 #include "document.h"
-#include "read_input_functions.h"
 #include "string_processing.cpp"
 #include "concurrent_map.h"
 
@@ -23,14 +22,17 @@ constexpr double EPSILON = 1e-6;
 
 class SearchServer {
 public:
+    // Коснструкторы
     template <typename StringContainer>
     SearchServer(const StringContainer& stop_words);
     SearchServer(std::string_view& stop_words_text):SearchServer(SplitIntoWords(stop_words_text)) {}
     SearchServer(const std::string& stop_words_text):SearchServer(SplitIntoWords(stop_words_text)) {}
 
+    // Добавление документа
     void AddDocument(int document_id, std::string_view document, DocumentStatus status, 
                                                         const std::vector<int>& ratings);
 
+    // Поиск Подходящих документов
     template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(std::string_view raw_query,
                             DocumentPredicate document_predicate) const;
@@ -45,18 +47,21 @@ public:
     template <typename Policy>
     std::vector<Document> FindTopDocuments(Policy policy, std::string_view raw_query) const;
 
+    // Количество документов в памяти
     int GetDocumentCount() const;
-    //int GetDocumentId(int index) const;   Устарело
     
+    // Итерирование по id документов
     std::set<int>::const_iterator begin();
     std::set<int>::const_iterator end();
 
+    // Удаление документа
     void RemoveDocument(int document_id);
     void RemoveDocument(const std::execution::sequenced_policy&, int document_id);
     void RemoveDocument(const std::execution::parallel_policy&, int document_id);
 
     const std::map<std::string_view, double>& GetWordFrequencies(int document_id) const;
 
+    // Получаем документ по запросу
     std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(std::string_view raw_query,
                                                         int document_id) const;
     std::tuple<std::vector<std::string_view>, DocumentStatus> MatchDocument(const std::execution::sequenced_policy&, 
@@ -76,6 +81,7 @@ private:
     std::set<int> document_ids_;
     std::map<int, std::map<std::string_view, double>> id_to_document_freqs_;
 
+    // Проверка на стоп-слово
     bool IsStopWord(std::string_view word) const;
 
     static bool IsValidWord(std::string_view word) {
@@ -84,6 +90,7 @@ private:
         });
     }
 
+    // Получаем слова, что не стоп-слова
     std::vector<std::string_view> SplitIntoWordsNoStop(std::string_view text) const;
 
     static int ComputeAverageRating(const std::vector<int>& ratings) {

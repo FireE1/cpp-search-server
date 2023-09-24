@@ -1,27 +1,22 @@
-#include "search_server.h"
-#include "process_queries.cpp"
-#include "log_duration.h"
+#include "search-server/search_server.h"
+#include "search-server/process_queries.h"
 
 #include <string>
-#include <vector>
 #include <iostream>
-#include <random>
 #include <execution>
 
-using namespace std;
-
 void PrintDocument(const Document& document) {
-    cout << "{ "s
+    std::cout << "{ "s
          << "document_id = "s << document.id << ", "s
          << "relevance = "s << document.relevance << ", "s
-         << "rating = "s << document.rating << " }"s << endl;
+         << "rating = "s << document.rating << " }"s << std::endl;
 }
 
 int main() {
     SearchServer search_server("and with"s);
     int id = 0;
     for (
-        const string& text : {
+        const std::string& text : {
             "white cat and yellow hat"s,
             "curly cat curly tail"s,
             "nasty dog with big eyes"s,
@@ -30,19 +25,19 @@ int main() {
     ) {
         search_server.AddDocument(++id, text, DocumentStatus::ACTUAL, {1, 2});
     }
-    cout << "ACTUAL by default:"s << endl;
+    std::cout << "ACTUAL by default:"s << std::endl;
     // последовательная версия
     for (const Document& document : search_server.FindTopDocuments("curly nasty cat"s)) {
         PrintDocument(document);
     }
-    cout << "BANNED:"s << endl;
+    std::cout << "BANNED:"s << std::endl;
     // последовательная версия
-    for (const Document& document : search_server.FindTopDocuments(execution::seq, "curly nasty cat"s, DocumentStatus::BANNED)) {
+    for (const Document& document : search_server.FindTopDocuments(std::execution::seq, "curly nasty cat"s, DocumentStatus::BANNED)) {
         PrintDocument(document);
     }
-    cout << "Even ids:"s << endl;
+    std::cout << "Even ids:"s << std::endl;
     // параллельная версия
-    for (const Document& document : search_server.FindTopDocuments(execution::par, "curly nasty cat"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; })) {
+    for (const Document& document : search_server.FindTopDocuments(std::execution::par, "curly nasty cat"s, [](int document_id, DocumentStatus status, int rating) { return document_id % 2 == 0; })) {
         PrintDocument(document);
     }
     return 0;
